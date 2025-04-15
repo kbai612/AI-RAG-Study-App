@@ -1,0 +1,6 @@
+# Setup Virtual Environemnt
+python -m venv venv
+venv\Scripts\activate
+
+# Install required dependencies
+pip install streamlit langchain langchain-community pdfplumber faiss-cpu openai semantic-chunkers sentence-transformers
