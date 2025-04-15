@@ -1,0 +1,15 @@
+streamlit
+langchain-community
+langchain-google-community
+langchain
+langchain-huggingface
+faiss-cpu
+python-dotenv
+google-auth
+langchain-openai
+sentence-transformers
+pypdf
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+json-repair
