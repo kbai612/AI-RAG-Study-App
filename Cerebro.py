@@ -25,7 +25,7 @@ st.set_page_config(
 
 st.title("📚 Study Buddy AI Assistant")
 st.write("Welcome! Use the sidebar to upload documents, load from Google Drive, chat with them using RAG, generate flashcards, or create MCQs.")
-st.info("Ensure necessary libraries are installed: `pip install langchain-openai langchain-huggingface sentence-transformers faiss-cpu pypdf google-api-python-client google-auth-httplib2 google-auth-oauthlib langchain-google-community`")
+
 
 # --- Initialize Session State ---
 # (Keep existing session state initializations)
@@ -223,18 +223,18 @@ if st.sidebar.button("Process All Loaded Files", key="process_button"):
 
 
 # Display status
-st.sidebar.markdown("---")
-if st.session_state.rag_ready: st.sidebar.success("✅ RAG Chat is ready.")
-else: st.sidebar.info("Load/Upload & Process files to enable RAG Chat.")
-if st.session_state.flashcards_ready: st.sidebar.success("✅ Flashcards & MCQs can be generated.")
-else: st.sidebar.info("Load/Upload & Process files to enable Flashcards & MCQs.")
+# st.sidebar.markdown("---")
+# if st.session_state.rag_ready: st.sidebar.success("✅ RAG Chat is ready.")
+# else: st.sidebar.info("Load/Upload & Process files to enable RAG Chat.")
+# if st.session_state.flashcards_ready: st.sidebar.success("✅ Flashcards & MCQs can be generated.")
+# else: st.sidebar.info("Load/Upload & Process files to enable Flashcards & MCQs.")
 
 # --- Main Page Content ---
 st.markdown("---")
 st.header("Instructions")
 st.markdown(f"""
 1.  **Configure Chat API:** Set `deepseek_api_key` and `deepseek_base_url` as environment variables (lowercase). These are used for Chat/Flashcard/MCQ generation.
-2.  **Install Dependencies:** Ensure `pip install langchain-openai langchain-huggingface sentence-transformers faiss-cpu pypdf google-api-python-client google-auth-httplib2 google-auth-oauthlib langchain-google-community` is run.
+2.  **Install Dependencies:** Ensure `pip install -r requirements.txt` is run.
 3.  **Google Drive Setup (Optional - Service Account):**
     *   Download a `{SERVICE_ACCOUNT_KEY_FILE}` key file from Google Cloud Console.
     *   Place it in the same directory as this script (`Home_Page.py`).
