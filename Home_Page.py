@@ -43,7 +43,7 @@ SERVICE_ACCOUNT_KEY_FILE = "service_account.json"
 
 
 # --- Load DeepSeek Credentials from Environment Variables ---
-st.session_state.deepseek_api_key = st.secrets["deepseek_api_key"]
+st.session_state.deepseek_api_key = st.secrets["DS_key"]
 # Provide a default URL if the env var is not set, but prioritize the env var
 default_deepseek_base_url = "https://api.deepseek.com/v1"
 st.session_state.deepseek_base_url = os.getenv("deepseek_base_url", default_deepseek_base_url)
