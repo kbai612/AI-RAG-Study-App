@@ -4,15 +4,6 @@ import json
 import traceback
 import random
 import re
-# Attempt to import json_repair, provide instructions if missing
-try:
-    import json_repair
-except ImportError:
-    st.error("The 'json_repair' library is needed for robust MCQ parsing. Please install it: pip install json_repair")
-    st.stop()
-
-
-st.set_page_config(page_title="MCQ Generator", page_icon="❓")
 st.title("❓ Multiple Choice Question Generator & Review")
 st.write("Generate MCQs from your uploaded documents and test your knowledge.")
 
@@ -51,48 +42,97 @@ if not processed_text:
 st.header("Generate MCQs")
 num_mcqs = st.number_input("Number of MCQs to generate:", min_value=1, max_value=30, value=5, key="num_mcqs")
 
-# Parser using json_repair as primary method
+# Parser for LLM response containing JSON
 def parse_mcqs(llm_response_text):
     """
-    Parses MCQs from LLM response. Attempts to repair broken JSON first.
+    Parses MCQs from LLM response, expecting a JSON list.
+    Attempts to extract JSON from markdown code blocks if present.
     """
-    # (Keep existing robust parser with json_repair)
     llm_response_text = llm_response_text.strip()
     parsed_mcqs = []
-    json_string_to_parse = llm_response_text
-    match = re.search(r"```(?:json)?\s*(\[.*?\])\s*```|(\[.*?\])", llm_response_text, re.DOTALL | re.IGNORECASE)
+    json_string_to_parse = llm_response_text.strip().replace("\n", " ").replace("\r", "")
+    # Use greedy match '.*' instead of non-greedy '.*?' to capture the whole list
+    match = re.search(r"```(?:json)?\s*(\[.*\])\s*```|(\[.*\])", llm_response_text, re.DOTALL | re.IGNORECASE)
     if match:
+        # Correctly extract the captured group (either group 1 or group 2)
         json_string_to_parse = match.group(1) if match.group(1) else match.group(2)
         json_string_to_parse = json_string_to_parse.strip()
-        st.info("Extracted potential JSON block to attempt repair.")
+        st.info("Extracted potential JSON block via regex.")
+        # Add debug log to show the exact string before parsing
+        st.text("DEBUG: Extracted string before JSON parsing:")
+        st.code(json_string_to_parse, language='json') # Display the string
     else:
         if not (llm_response_text.startswith('[') and llm_response_text.endswith(']')) and \
            not (llm_response_text.startswith('{') and llm_response_text.endswith('}')):
-             st.warning("Response does not appear to be a JSON list/object. Attempting repair anyway.")
+             st.warning("Response does not appear to be a JSON list/object. Attempting direct parse.")
         else:
-             st.info("No clear JSON block found via regex, attempting repair on the full response.")
+             st.info("No clear JSON block found via regex, attempting parse on the full response.")
     try:
-        st.info("Attempting JSON repair...")
-        repaired_json_string = json_repair.repair_json(json_string_to_parse)
-        st.info("JSON repair attempted. Parsing repaired string...")
-        parsed_data = json.loads(repaired_json_string)
-        if isinstance(parsed_data, list) and all(
-            isinstance(item, dict) and 'question' in item and 'options' in item and
-            isinstance(item['options'], list) and len(item['options']) > 1 and
-            'answer' in item and item['answer'] in item['options'] and 'type' in item
-            for item in parsed_data
-        ):
-            st.success("Successfully parsed response after potential JSON repair.")
-            for item in parsed_data: random.shuffle(item['options'])
-            return parsed_data
-        else:
-            st.error("Repaired JSON does not match the expected MCQ list format.")
-            st.code(repaired_json_string, language='json')
+        # Attempt direct JSON parsing
+        parsed_data = json.loads(json_string_to_parse)
+
+        # Lenient validation: Iterate and keep only valid MCQs
+        valid_mcqs = []
+        if not isinstance(parsed_data, list):
+            st.error(f"Parsing Error: Expected a JSON list, but got type {type(parsed_data).__name__}.")
             st.json(parsed_data)
-            return []
-    except Exception as e:
-        st.error(f"Failed to repair or parse JSON: {e}")
-        st.error("Attempted to parse this (potentially repaired) text:")
+            return [] # Return empty list if it's not a list
+
+        for i, item in enumerate(parsed_data):
+            is_valid = True
+            # Check structure and types
+            if not isinstance(item, dict):
+                st.warning(f"Skipping item {i+1}: Not a dictionary (JSON object). Found type: {type(item).__name__}.")
+                is_valid = False
+            elif not all(k in item for k in ['question', 'options', 'answer', 'type']):
+                st.warning(f"Skipping item {i+1}: Missing one or more required keys ('question', 'options', 'answer', 'type'). Keys found: {list(item.keys())}")
+                is_valid = False
+            elif not isinstance(item.get('question'), str):
+                 st.warning(f"Skipping item {i+1}: 'question' is not a string.")
+                 is_valid = False
+            elif not isinstance(item.get('options'), list):
+                 st.warning(f"Skipping item {i+1}: 'options' is not a list.")
+                 is_valid = False
+            elif len(item.get('options', [])) < 2:
+                 st.warning(f"Skipping item {i+1}: 'options' list has less than 2 items.")
+                 is_valid = False
+            elif not all(isinstance(opt, str) for opt in item.get('options', [])):
+                 st.warning(f"Skipping item {i+1}: Not all items in 'options' are strings.")
+                 is_valid = False
+            elif not isinstance(item.get('answer'), str):
+                 st.warning(f"Skipping item {i+1}: 'answer' is not a string.")
+                 is_valid = False
+            elif not item.get('answer', '').strip(): # Check if answer is empty or whitespace
+                st.warning(f"Skipping item {i+1}: 'answer' value is empty.")
+                is_valid = False
+            elif item.get('answer') not in item.get('options', []):
+                st.warning(f"Skipping item {i+1}: 'answer' ('{item.get('answer')}') not found in 'options'.")
+                is_valid = False
+            elif not isinstance(item.get('type'), str):
+                 st.warning(f"Skipping item {i+1}: 'type' is not a string.")
+                 is_valid = False
+
+            if is_valid:
+                valid_mcqs.append(item)
+
+        if not valid_mcqs:
+            st.warning("Parsing Warning: No valid MCQs found in the response after validation.")
+            st.info("Showing the originally parsed data:")
+            st.json(parsed_data)
+        else:
+            st.success(f"Successfully parsed and validated {len(valid_mcqs)} MCQs.")
+            if len(valid_mcqs) < len(parsed_data):
+                 st.info(f"Skipped {len(parsed_data) - len(valid_mcqs)} invalid item(s) during validation.")
+
+        # Shuffle options only for the valid MCQs
+        for item in valid_mcqs:
+            random.shuffle(item['options'])
+
+        return valid_mcqs
+
+    except json.JSONDecodeError as e:
+        st.error(f"Failed to parse JSON: {e}")
+        st.error("Attempted to parse this text:")
         st.code(json_string_to_parse, language='text')
         st.text_area("Original LLM Response:", llm_response_text, height=150)
         return []
@@ -118,8 +158,8 @@ if st.button("Generate MCQs", key="generate_mcqs_btn"):
             1.  The entire output MUST be a single, valid JSON list (`[...]`).
             2.  Each element in the list MUST be a valid JSON object (`{{...}}`) representing one MCQ.
             3.  Each MCQ object MUST contain the following keys with string values: "question", "options" (a list of 4 strings), "answer" (one of the strings from "options"), and "type" (a string classifying the question).
-            4.  **If the "question" text contains mathematical formulas or symbols, format them using LaTeX syntax** (e.g., $E=mc^2$ or $$\frac{{a}}{{b}}$$). The "options" and "answer" should generally remain plain text unless the answer itself is purely mathematical notation.
-            5.  Ensure all strings within the JSON are properly escaped (e.g., use \\" for quotes inside strings).
+            4.  Be Nice
+            5.  Ensure all strings within the JSON are properly escaped (e.g., use \\\\" for quotes inside strings).
             6.  Ensure correct JSON syntax, including commas (`,`) between elements in the list and between key-value pairs within objects. Do NOT use trailing commas.
             7.  Do NOT include any text before the opening `[` or after the closing `]`.
             8.  Do NOT use markdown formatting like ```json.
@@ -127,12 +167,19 @@ if st.button("Generate MCQs", key="generate_mcqs_btn"):
 
             **Example of ONE valid MCQ object within the list:**
             {{
-              "question": "What is the formula for kinetic energy, $K$?",
-              "options": ["$K = mgh$", "$K = \\frac{{1}}{{2}}mv^2$", "$K = mc^2$", "$K = pV$"],
-              "answer": "$K = \\frac{{1}}{{2}}mv^2$",
-              "type": "Formula Recall"
-            }}
+              "question": "What is the capital of France?",
+              "options": ["Paris", "Berlin", "Madrid", "Rome"],
+              "answer": "Paris",
+              "type": "Geography"
+            }}   
 
+            **Example of ANOTHER valid MCQ object within the list:**
+            {{
+              "question": "What is the formula for kinetic energy, $K$?",
+              "options": ["$K = mgh$", "$K = \\\\\frac{{1}}{{2}}mv^2$", "$K = mc^2$", "$K = pV$"],
+              "answer": "$K = \\\\\frac{{1}}{{2}}mv^2$",
+              "type": "Physics"
+            }}
             **Text for MCQ Generation:**
             ---
             {processed_text[:15000]}
@@ -156,7 +203,7 @@ if st.button("Generate MCQs", key="generate_mcqs_btn"):
         except Exception as e:
             st.error(f"An error occurred during MCQ generation API call: {e}")
             st.code(traceback.format_exc())
-
+            st.code(response.content)
 # --- MCQ Review ---
 st.markdown("---")
 st.header("Review MCQs")
@@ -201,20 +248,24 @@ else:
         submitted = st.form_submit_button("Check Answer", disabled=is_disabled)
 
         if submitted and user_answer:
-            st.session_state.user_mcq_answer = user_answer
-            st.session_state.mcq_answered = True
-            st.rerun()
+            # Check if the submitted answer is correct
+            if user_answer == mcq['answer']:
+                st.session_state.user_mcq_answer = user_answer
+                st.session_state.mcq_answered = True
+                # Display success message immediately and rerun to disable form
+                st.success(f"Correct! The answer is: {mcq['answer']}")
+
+            else:
+                # If incorrect, show error but keep form enabled (don't set mcq_answered=True)
+                st.error("Incorrect. Try again!")
         elif submitted and not user_answer:
              st.warning("Please select an answer.")
 
-    if st.session_state.mcq_answered and st.session_state.user_mcq_answer:
-         # Display feedback using markdown for potential LaTeX in answer
-         if st.session_state.user_mcq_answer == mcq['answer']:
-             st.success(f"Correct! The answer is:")
-             st.markdown(mcq['answer'], unsafe_allow_html=False)
-         else:
-             st.error(f"Incorrect. You chose: {st.session_state.user_mcq_answer}. Correct answer is:")
-             st.markdown(mcq['answer'], unsafe_allow_html=False)
+    # The feedback logic is now handled within the form submission (above).
+    # This block is no longer needed.
+    # if st.session_state.mcq_answered and st.session_state.user_mcq_answer:
+    #      # This condition is only met after a correct answer and rerun
+    #      st.success(f"Correct! The answer is: {mcq['answer']}") # Already shown above
 
 
     # Navigation and Star Buttons
