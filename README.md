@@ -4,7 +4,7 @@ _A flexible, tailored study application built to help you learn better._
 ## Installation
 ```bash
 # For all required libraries and packages 
-pipx install -r requirements.txt
+pip install -r requirements.txt
 ```
 ## Key Features
 In the Cerebro homepage you are able to pull all documents in your google drive to be included in the knoweledge base through your Google Drive API. You are also able to manually add additional documents if you need extra context.This uses model BAAI/bge-base-en-v1.5 for embedding which runs locally on your machine and creates a vector store in memory.
