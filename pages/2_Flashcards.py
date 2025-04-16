@@ -65,7 +65,6 @@ def parse_flashcards(text_response):
 if st.button("Generate Flashcards", key="generate_flashcards_btn"):
     with st.spinner(f"Generating {num_flashcards} flashcards..."):
         effective_base_url = base_url.removesuffix('/v1').removesuffix('/')
-        st.caption(f"Using Base URL for Chat: {effective_base_url}")
 
         try:
             model = ChatOpenAI(

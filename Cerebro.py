@@ -52,7 +52,6 @@ st.session_state.deepseek_base_url = os.getenv("deepseek_base_url", default_deep
 st.sidebar.header("API Configuration Status")
 if st.session_state.deepseek_api_key and st.session_state.deepseek_base_url:
     st.sidebar.success("DeepSeek Chat credentials loaded from environment variables.")
-    st.sidebar.caption(f"Using Base URL: {st.session_state.deepseek_base_url}")
 else:
     missing_vars = []
     if not st.session_state.deepseek_api_key: missing_vars.append("`deepseek_api_key`")

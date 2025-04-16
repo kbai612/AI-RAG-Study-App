@@ -141,7 +141,6 @@ def parse_mcqs(llm_response_text):
 if st.button("Generate MCQs", key="generate_mcqs_btn"):
     with st.spinner(f"Generating {num_mcqs} MCQs..."):
         effective_base_url = base_url.removesuffix('/v1').removesuffix('/')
-        st.caption(f"Using Base URL for Chat: {effective_base_url}")
 
         try:
             model = ChatOpenAI(
