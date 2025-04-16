@@ -6,6 +6,11 @@ _A flexible, tailored study application built to help you learn better._
 # For all required libraries and packages 
 pip install -r requirements.txt
 ```
+## Workflow
+Utilizes a retreival augmented generation (RAG) system to store context as vectors and include it in the prompt when relevant.
+![Cerebro AI FlowChart](https://github.com/user-attachments/assets/cf7475c1-0a60-468e-9b9b-e00351f4519b)
+
+
 ## Key Features
 In the Cerebro homepage you are able to pull all documents in your google drive to be included in the knoweledge base through your Google Drive API. You are also able to manually add additional documents if you need extra context.This uses model BAAI/bge-base-en-v1.5 for embedding which runs locally on your machine and creates a vector store in memory.
 ![image](https://github.com/user-attachments/assets/5cc739bc-9ecf-45e3-be59-1d43b2943c2f)
