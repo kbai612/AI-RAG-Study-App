@@ -5,7 +5,7 @@ import traceback
 import random
 import re
 st.title("❓ Multiple Choice Question Generator & Review")
-st.write("Generate MCQs from your uploaded documents and test your knowledge.")
+st.write("Generate MC questionss from your uploaded documents and test your knowledge.")
 
 # --- Initialize MCQ Session State ---
 if "mcqs" not in st.session_state:

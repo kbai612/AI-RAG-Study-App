@@ -4,8 +4,8 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
 import traceback
 
-st.set_page_config(page_title="RAG Chat", page_icon="💬", layout="centered") # Use centered layout for chat
-st.title("💬 RAG Chat")
+st.set_page_config(page_title="Cerebro Chat", page_icon="💬", layout="centered") # Use centered layout for chat
+st.title("💬 Cerebro Chat")
 st.write("Ask questions about the documents you uploaded on the main page.")
 
 # --- Initialize Chat History ---

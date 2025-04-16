@@ -17,14 +17,14 @@ load_dotenv()
 
 # --- Page Configuration (Main App) ---
 st.set_page_config(
-    page_title="Study Buddy AI",
+    page_title="Cerebro AI",
     page_icon="📚",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-st.title("📚 Study Buddy AI Assistant")
-st.write("Welcome! Use the sidebar to upload documents, load from Google Drive, chat with them using RAG, generate flashcards, or create MCQs.")
+st.title("📚 Cerebro AI Assistant")
+st.write("Welcome! Use the sidebar to upload documents, load from Google Drive, chat with them using RAG, generate flashcards, or create MC questions.")
 
 
 # --- Initialize Session State ---
@@ -221,14 +221,6 @@ if st.sidebar.button("Process All Loaded Files", key="process_button"):
             else:
                 st.sidebar.warning("Could not split combined text into chunks.")
 
-
-# Display status
-# st.sidebar.markdown("---")
-# if st.session_state.rag_ready: st.sidebar.success("✅ RAG Chat is ready.")
-# else: st.sidebar.info("Load/Upload & Process files to enable RAG Chat.")
-# if st.session_state.flashcards_ready: st.sidebar.success("✅ Flashcards & MCQs can be generated.")
-# else: st.sidebar.info("Load/Upload & Process files to enable Flashcards & MCQs.")
-
 # --- Main Page Content ---
 st.markdown("---")
 st.header("Instructions")
@@ -242,7 +234,7 @@ st.markdown(f"""
     *   Enter the Google Drive Folder ID in the sidebar & click "Load Files from Google Drive".
 4.  **Manual Upload (Optional):** Upload PDF/TXT files using the sidebar.
 5.  **Process Files:** Click "Process All Loaded Files". This combines text and generates local embeddings.
-6.  **Navigate:** Use the sidebar navigation to switch between RAG Chat, Flashcards, and MCQs.
+6.  **Navigate:** Use the sidebar navigation to switch between Cerebro Chat, Flashcards, and MC Questions.
 """)
 
 # Button for clearing processed data 
